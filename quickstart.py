@@ -8,7 +8,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 
 def main():
@@ -37,30 +37,31 @@ def main():
   try:
     service = build("calendar", "v3", credentials=creds)
 
-    # Call the Calendar API
-    now = datetime.datetime.utcnow().isoformat() + "Z"  # 'Z' indicates UTC time
-    print("Getting the upcoming 10 events")
-    events_result = (
-        service.events()
-        .list(
-            calendarId="primary",
-            timeMin=now,
-            maxResults=10,
-            singleEvents=True,
-            orderBy="startTime",
-        )
-        .execute()
-    )
-    events = events_result.get("items", [])
+        # Refer to the Python quickstart on how to setup the environment.
+    # https://developers.google.com/calendar/api/quickstart/python
+    event = {
+        "summary": "Prueba de API",
+        "location": "Google Meet",
+        "description": "Un evento de prueba creado automáticamente desde nuestro script de Python.",
+        "start": {
+            "dateTime": "2025-08-19T09:00:00-05:00",
+            "timeZone": "America/Bogota",
+        },
+        "end": {
+            "dateTime": "2025-08-19T10:00:00-05:00",
+            "timeZone": "America/Bogota",
+        },
+        "reminders": {
+            "useDefault": False,
+            "overrides": [
+                {"method": "email", "minutes": 24 * 60},
+                {"method": "popup", "minutes": 10},
+            ],
+        },
+    }
 
-    if not events:
-      print("No upcoming events found.")
-      return
-
-    # Prints the start and name of the next 10 events
-    for event in events:
-      start = event["start"].get("dateTime", event["start"].get("date"))
-      print(start, event["summary"])
+    event = service.events().insert(calendarId="primary", body=event).execute()
+    print(f"Evento creado: {event.get('htmlLink')}")
 
   except HttpError as error:
     print(f"An error occurred: {error}")
